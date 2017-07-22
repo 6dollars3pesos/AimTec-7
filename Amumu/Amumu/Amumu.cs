@@ -19,8 +19,7 @@
 
     using Spell = Aimtec.SDK.Spell;
 
-    internal class Amumu
-    { // Code now 
+    internal class Amumu { 
         public static Menu Menu = new Menu("pAmumu", "pAmumu", true);
 
         public static Orbwalker Orbwalker = new Orbwalker();
@@ -34,10 +33,8 @@
             W = new Spell(SpellSlot.W, 300);
             E = new Spell(SpellSlot.E, 350);
             R = new Spell(SpellSlot.R, 550);
-           
-            Q.SetSkillshot(0.25f, 0.50f, 2000f, true, SkillshotType.Line);
-            R.SetSkillshot(0.25f, 150, 1500, false, SkillshotType.Circle);
 
+            Q.SetSkillshot(0.25f, 0.50f, 2000f, true, SkillshotType.Line);
         }
 
         public Amumu()
@@ -73,12 +70,6 @@
          
             }
             Menu.Add(FarmMenu);
-            var LastMenu = new Menu("lasthit", "Last Hit");
-            {
-                LastMenu.Add(new MenuBool("lastq", "Use Q to Last Hit", false));
-                LastMenu.Add(new MenuBool("qaa", "^- Don't use if in AA Range"));
-            }
-            Menu.Add(LastMenu);
             var KSMenu = new Menu("killsteal", "Killsteal");
             {
                 KSMenu.Add(new MenuBool("ksq", "Killsteal with Q"));
@@ -98,7 +89,8 @@
             Menu.Add(DrawMenu);
             var MiscMenu = new Menu("misc", "Misc.");
             {
-                MiscMenu.Add(new MenuBool("InterruptQ", "Interrupt with Q", false));
+                MiscMenu.Add(new MenuBool("InterruptQ", "Interrupt with Q (Not functional yet)", false));
+                MiscMenu.Add(new MenuBool("smartw", "Smart W"));
             }
             Menu.Add(MiscMenu);
  
@@ -192,7 +184,11 @@
                 return;
             }
 
-            autoW();
+            if (Menu["misc"]["smartw"].Enabled)
+            {
+                autoW();
+            }
+
             switch (Orbwalker.Mode)
             {
                 case OrbwalkingMode.Combo:
@@ -200,9 +196,6 @@
                     break;
                 case OrbwalkingMode.Mixed:
                     OnHarass();
-                    break;
-                case OrbwalkingMode.Lasthit: 
-                    Lasthit();
                     break;
                 case OrbwalkingMode.Laneclear:
                     Clearing();
@@ -252,8 +245,6 @@
                         {
                             
                             W.Cast();
-                            Orbwalker.ForceTarget(minion);
-                            
                         }
                     }
                 }
@@ -313,8 +304,6 @@
                     if (useW && jungleTarget.IsValidTarget(W.Range) && !Player.HasBuff("AuraofDespair"))
                     {
                         W.Cast();
-
-                        Orbwalker.ForceTarget(jungleTarget);
                     }
                     if (useE && jungleTarget.IsValidTarget(E.Range))
                     {
@@ -324,45 +313,9 @@
             }
         }
 
-        private void Lasthit()
-        {
-            if (Menu["lasthit"]["lastq"].Enabled)
-            {
-                
-                foreach (var minion in GetEnemyLaneMinionsTargetsInRange(Q.Range))
-                {
-                   
-                    if (minion.Health <= Player.GetSpellDamage(minion, SpellSlot.Q))
-                    {               
-                        if (!Menu["lasthit"]["qaa"].Enabled)
-                        {
-                            
-                            Q.CastOnUnit(minion);
-                        }
-                        if (Menu["lasthit"]["qaa"].Enabled)
-                        {
-                            if (minion.Distance(Player) > 300)
-                            {
+    
 
-                                Q.CastOnUnit(minion);
-                            }
-                        }
-                    }
-                }
-            }
-            if (Menu["lasthit"]["lastw"].Enabled)
-            {
-                foreach (var minion in GetEnemyLaneMinionsTargetsInRange(250))
-                {
-                    if (minion.Health <= Player.GetSpellDamage(minion, SpellSlot.W) && minion.IsValidTarget(250) && !Player.HasBuff("AuraofDespair"))
-                    {
-                        W.Cast();
-                        Orbwalker.ForceTarget(minion);
-                    }
-                }
-            }
-
-        }
+       
 
 
      
@@ -527,4 +480,3 @@
         }
     }
 }
-// Hi :>

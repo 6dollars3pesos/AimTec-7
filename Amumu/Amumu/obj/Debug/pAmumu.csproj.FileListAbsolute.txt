@@ -1,0 +1,10 @@
+C:\Users\Ryan\Desktop\Amumu\Amumu\obj\Debug\pAmumu.csprojResolveAssemblyReference.cache
+C:\Users\Ryan\Desktop\Amumu\Amumu\bin\Debug\pAmumu.exe.config
+C:\Users\Ryan\Desktop\Amumu\Amumu\bin\Debug\pAmumu.exe
+C:\Users\Ryan\Desktop\Amumu\Amumu\bin\Debug\pAmumu.pdb
+C:\Users\Ryan\Desktop\Amumu\Amumu\bin\Debug\Aimtec.dll
+C:\Users\Ryan\Desktop\Amumu\Amumu\bin\Debug\Aimtec.SDK.dll
+C:\Users\Ryan\Desktop\Amumu\Amumu\bin\Debug\NLog.dll
+C:\Users\Ryan\Desktop\Amumu\Amumu\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Ryan\Desktop\Amumu\Amumu\obj\Debug\pAmumu.exe
+C:\Users\Ryan\Desktop\Amumu\Amumu\obj\Debug\pAmumu.pdb
