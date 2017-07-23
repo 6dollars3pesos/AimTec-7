@@ -1,0 +1,10 @@
+C:\Users\Ryan\Desktop\Brand\bin\x86\Debug\pBrand.exe.config
+C:\Users\Ryan\Desktop\Brand\bin\x86\Debug\pBrand.exe
+C:\Users\Ryan\Desktop\Brand\bin\x86\Debug\pBrand.pdb
+C:\Users\Ryan\Desktop\Brand\bin\x86\Debug\Aimtec.dll
+C:\Users\Ryan\Desktop\Brand\bin\x86\Debug\Aimtec.SDK.dll
+C:\Users\Ryan\Desktop\Brand\bin\x86\Debug\NLog.dll
+C:\Users\Ryan\Desktop\Brand\bin\x86\Debug\Newtonsoft.Json.dll
+C:\Users\Ryan\Desktop\Brand\obj\x86\Debug\pBrand.csprojResolveAssemblyReference.cache
+C:\Users\Ryan\Desktop\Brand\obj\x86\Debug\pBrand.exe
+C:\Users\Ryan\Desktop\Brand\obj\x86\Debug\pBrand.pdb

@@ -59,8 +59,10 @@
             var RSet = new Menu("rset", "R Settings");
             {
                 RSet.Add(new MenuBool("user", "Use R in combo"));
-                RSet.Add(new MenuBool("rkill", "Only R when killable by combo"));
+                RSet.Add(new MenuBool("rkill", "Only R when killable by combo (Will cast on only 1 target if killable)"));
                 RSet.Add(new MenuSlider("rmin", "Only R when >= X champions", 1, 1, 5));
+                RSet.Add(new MenuSlider("rhealth", "Only enemy HP % >", 40, 1, 100));
+                RSet.Add(new MenuKeyBind("teamfight", "Teamfight mode (Will always R if > X champions set above, regardless of HP)", KeyCode.T, KeybindType.Toggle));
             }
             ComboMenu.Add(RSet);
             var HarassMenu = new Menu("harass", "Harass");
@@ -102,12 +104,14 @@
                 DrawMenu.Add(new MenuBool("drawe", "Draw E Range"));
                 DrawMenu.Add(new MenuBool("drawr", "Draw R Range"));
                 DrawMenu.Add(new MenuBool("drawDamage", "Draw Damage"));
+                DrawMenu.Add(new MenuBool("drawautostun", "Draw Auto-Stun Range"));
+                DrawMenu.Add(new MenuBool("drawtf", "Draw Teamfight Mode"));
             }
             Menu.Add(DrawMenu);
             var MiscMenu = new Menu("misc", "Misc.");
             {
-                MiscMenu.Add(new MenuBool("InterruptQ", "Interrupt with Q (Not functional yet)", false));
-                MiscMenu.Add(new MenuBool("smartw", "Smart W"));
+                MiscMenu.Add(new MenuBool("autostun", "Auto-Stun"));
+                MiscMenu.Add(new MenuSlider("autostunrange", "^ Auto-Stun closest enemy within X range", 300, 0, 600));
             }
             Menu.Add(MiscMenu);
 
@@ -132,15 +136,19 @@
         }
         private void Render_OnPresent()
         {
+            Vector2 maybeworks;
+            var heropos = Render.WorldToScreen(Player.Position, out maybeworks);
+            var xaOffset = (int)maybeworks.X;
+            var yaOffset = (int)maybeworks.Y;
 
             if (Menu["drawings"]["drawq"].Enabled)
             {
-                Render.Circle(Player.Position, Menu["combo"]["qset"]["maxrange"].As<MenuSlider>().Value, 50, Color.Crimson);
+                Render.Circle(Player.Position, Menu["combo"]["qset"]["maxrange"].As<MenuSlider>().Value, 50, Color.White);
             }
 
             if (Menu["drawings"]["drawe"].Enabled)
             {
-                Render.Circle(Player.Position, E.Range, 50, Color.LightGreen);
+                Render.Circle(Player.Position, E.Range, 50, Color.Violet);
             }
             if (Menu["drawings"]["draww"].Enabled)
             {
@@ -148,7 +156,24 @@
             }
             if (Menu["drawings"]["drawr"].Enabled)
             {
-                Render.Circle(Player.Position, R.Range, 50, Color.Crimson);
+                Render.Circle(Player.Position, R.Range, 50, Color.Yellow);
+            }
+            if (Menu["drawings"]["drawautostun"].Enabled)
+            {
+                Render.Circle(Player.Position, Menu["misc"]["autostunrange"].As<MenuSlider>().Value, 50, Color.Red);
+            }
+            if (Menu["drawings"]["drawtf"].Enabled)
+            {
+                if (Menu["combo"]["rset"]["teamfight"].Enabled)
+                {
+                    Render.Text(xaOffset - 50, yaOffset + 10, Color.Lime, "Teamfight mode: ON",
+                        RenderTextFlags.VerticalCenter);
+                }
+                if (!Menu["combo"]["rset"]["teamfight"].Enabled)
+                {
+                    Render.Text(xaOffset - 50, yaOffset + 10, Color.Red, "Teamfight mode: OFF",
+                        RenderTextFlags.VerticalCenter);
+                }
             }
             if (Menu["drawings"]["drawDamage"].Enabled)
             {
@@ -197,7 +222,23 @@
               }
           }*/
 
-
+            public void autoStun()
+        {
+            float range = Menu["misc"]["autostunrange"].As<MenuSlider>().Value;
+            var bestTarget = TargetSelector.Implementation.GetOrderedTargets(range).First(t => t.IsValidTarget());
+            if (Player.CountEnemyHeroesInRange(range) > 0  && Q.Ready && E.Ready)
+            {
+                if (E.Ready)
+                {
+                    E.CastOnUnit(bestTarget);
+                }
+                if (Q.Ready)
+                {
+                    Q.Cast(bestTarget);
+                }
+            }
+            
+        }
         private void Game_OnUpdate()
         {
             if (Player.IsDead || MenuGUI.IsChatOpen())
@@ -205,7 +246,10 @@
                 return;
             }
 
-
+            if (Menu["misc"]["autostun"].Enabled)
+            {
+                autoStun();
+            }
 
             switch (Orbwalker.Mode)
             {
@@ -416,9 +460,11 @@
             bool useW = Menu["combo"]["usew"].Enabled;
             bool useE = Menu["combo"]["usee"].Enabled;
             bool useR = Menu["combo"]["rset"]["user"].Enabled;
+            bool teamfight = Menu["combo"]["rset"]["teamfight"].Enabled;
             bool useRKillable = Menu["combo"]["rset"]["rkill"].Enabled;
             bool onlystun = Menu["combo"]["qset"]["useqablaze"].Enabled;
             int renemies = Menu["combo"]["rset"]["rmin"].As<MenuSlider>().Value;
+            int rminhealth = Menu["combo"]["rset"]["rmin"].As<MenuSlider>().Value;
             float maxq = Menu["combo"]["qset"]["maxrange"].As<MenuSlider>().Value;
 
 
@@ -439,73 +485,134 @@
             double Edamage = Player.GetSpellDamage(target, SpellSlot.E);
             double Rdamage = Player.GetSpellDamage(target, SpellSlot.R);
             double totalDmg = Qdamage + Wdamage + Edamage + Rdamage;
-           
+
             //Dynamic combo
             //If enemy in range of e
             if (target.IsValidTarget(E.Range) && useE)
-                    {
-                        if (R.Ready && useR && useRKillable && target.Health < totalDmg && Q.Ready && E.Ready && W.Ready)
-                        {
+            {
+
+                if (R.Ready && //r ready
+                    useR &&  //use r in combo
+                    useRKillable && //only r if killable
+                    target.Health < totalDmg && // if killable
+                    Q.Ready && //q ready
+                    E.Ready && //e ready
+                    W.Ready && //w ready
+                    target.HealthPercent() > rminhealth // make sure hp > min health slider
+                   || //OR if teamfight is enabled
+                    R.Ready && //r ready
+                    teamfight && //teamfight enabled
+                    target.CountEnemyHeroesInRange(750) >= renemies) //and > renemies
+                {
                     R.CastOnUnit(target);
-                         }
-                        if (E.Ready)
-                        {
-                            E.CastOnUnit(target);
-                        }
+                }
 
-                        //Make sure nothing collides with Q
-                        var meow = Q.GetPrediction(target);
-                        var collisions = (IList<Obj_AI_Base>)meow.CollisionObjects;
+                if (E.Ready)
+                {
+                    E.CastOnUnit(target);
+                }
 
-                        if (Q.Ready &&
-                            !collisions.Any() &&
-                            target.IsValidTarget(maxq))
-                        {
-                            if(onlystun && !target.HasBuff("BrandAblaze"))
+                var meow = Q.GetPrediction(target);
+                var collisions = (IList<Obj_AI_Base>)meow.CollisionObjects;
+
+                if (!Q.Ready || !onlystun ||
+                        collisions.Any()) //if onlystun is off and or q is down and or q collision exists
+                {
+                   
+
+                    if (R.Ready && //r ready    
+                        useR && //r option on
+                        useRKillable && //r killable option on
+                        target.Health < totalDmg && //and is actually killable
+                        Q.Ready && //spell checks
+                        E.Ready &&
+                        W.Ready &&
+                        target.HealthPercent() > rminhealth && //min health check
+                        target.CountEnemyHeroesInRange(750) >= renemies //has to be this many enemies in area
+                        ||
+                        R.Ready && //r check
+                        teamfight && //teamfight mode
+                        target.CountEnemyHeroesInRange(750) >= renemies) //if > x enemies
                     {
-                        return;
-                    } else
-                            Q.Cast(meow.CastPosition);
-                        }
-
-                        if (W.Ready &&
-                            target.IsValidTarget(W.Range))
-                        {
-                            W.Cast(target);
-                        }
-
-                        if (R.Ready && useR && target.CountEnemyHeroesInRange(750) >= renemies && target.IsValidTarget(R.Range))
-                        {
-                            R.CastOnUnit(target);
-                        }
-                    }   //If it does ->
-                    else
-                    {
-                        if (W.Ready &&
-                            target.IsValidTarget(W.Range))
-                        {
-                            W.Cast(target);
-                        }
-
-                        if (Q.Ready &&
-                            target.IsValidTarget(maxq))
-                        {
-                    if (onlystun && !target.HasBuff("BrandAblaze"))
-                    {
-                        return;
-                    } else
-                        Q.Cast(target);
-                        }
-                    if (R.Ready && 
-                    useR && 
-                    target.CountEnemyHeroesInRange(750) >= renemies && 
-                    target.IsValidTarget(R.Range))
-                    {
-                    R.CastOnUnit(target);
+                        R.CastOnUnit(target);
                     }
+                    if (Q.Ready &&
+                        target.IsValidTarget(maxq))
+                    {
+                        if (onlystun && !target.HasBuff("BrandAblaze"))
+                        {
+                            return;
+                        }
+                        else
+                            Q.Cast(target);
+                    }
+                   
+                } 
+
+                if (E.Ready)
+                {
+                    E.CastOnUnit(target);
+                }
+
+                if (target.HasBuff("BrandAblaze"))
+                {
+                    Q.Cast(target);
+                }
+
+                if (W.Ready &&
+                            target.IsValidTarget(W.Range) && useW)
+                {
+                    W.Cast(target);
+                }
+
+                if (R.Ready && useR && useRKillable && target.Health < totalDmg && Q.Ready && E.Ready && W.Ready && target.HealthPercent() > rminhealth && target.CountEnemyHeroesInRange(750) >= renemies || R.Ready && teamfight && target.CountEnemyHeroesInRange(750) >= renemies)
+                {
+                    R.CastOnUnit(target);
+                }
+                //If it does ->
+                else
+                {
+                    if (W.Ready &&
+                        target.IsValidTarget(W.Range) && useW)
+                    {
+                        W.Cast(target);
+                    }
+
+                    if (Q.Ready &&
+                        target.IsValidTarget(maxq))
+                    {
+                        if (onlystun && !target.HasBuff("BrandAblaze"))
+                        {
+                            return;
+                        }
+                        else
+                            Q.Cast(target);
+                    }
+                    if (R.Ready && useR && useRKillable && target.Health < totalDmg && Q.Ready && E.Ready && W.Ready && target.HealthPercent() > rminhealth && target.CountEnemyHeroesInRange(750) >= renemies || R.Ready && teamfight && target.CountEnemyHeroesInRange(750) >= renemies)
+                    {
+                        R.CastOnUnit(target);
+                    }
+                }
+
             }
-               
+            if (target.IsValidTarget(W.Range) && W.Ready)
+            {
+                W.Cast(target);
             }
+            if (onlystun && target.HasBuff("BrandAblaze"))
+            {
+                if (target.IsValidTarget(Q.Range) && Q.Ready)
+                Q.Cast(target);
+            }
+            else
+                 if (target.IsValidTarget(Q.Range) && Q.Ready && !onlystun)
+                Q.Cast(target);
+            if (R.Ready && useR && target.IsValidTarget(R.Range) && useRKillable && target.Health < totalDmg && Q.Ready && E.Ready && W.Ready && target.HealthPercent() > rminhealth && target.CountEnemyHeroesInRange(750) >= renemies || R.Ready && teamfight && target.CountEnemyHeroesInRange(750) >= renemies)
+            {
+                R.CastOnUnit(target);
+            }
+
+        }
             
 
         
@@ -532,6 +639,8 @@
                     return;
                 }
 
+                var meow = Q.GetPrediction(target);
+                var collisions = (IList<Obj_AI_Base>)meow.CollisionObjects;
                 //Dynamic combo
                 //If enemy in range of e
                 if (target.IsValidTarget(E.Range) && useE)
@@ -541,20 +650,20 @@
                         E.CastOnUnit(target);
                     }
 
-                    //Make sure nothing collides with Q
-                    var meow = Q.GetPrediction(target);
-                    var collisions = (IList<Obj_AI_Base>)meow.CollisionObjects;
-
-                    if (Q.Ready &&
-                        !collisions.Any() &&
-                        target.IsValidTarget(maxq))
+                    if (!Q.Ready || !onlystun ||
+                        collisions.Any())
                     {
-                        if (onlystun && !target.HasBuff("BrandAblaze"))
-                        {
-                            return;
-                        }
-                        else
-                            Q.Cast(meow.CastPosition);
+                        return;
+                    }
+
+                    if (E.Ready)
+                    {
+                        E.CastOnUnit(target);
+                    }
+
+                    if (target.HasBuff("BrandAblaze"))
+                    {
+                        Q.Cast(target);
                     }
 
                     if (W.Ready &&
