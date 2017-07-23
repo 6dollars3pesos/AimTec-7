@@ -225,8 +225,8 @@
             public void autoStun()
         {
             float range = Menu["misc"]["autostunrange"].As<MenuSlider>().Value;
-            var bestTarget = TargetSelector.Implementation.GetOrderedTargets(range).First(t => t.IsValidTarget());
-            if (Player.CountEnemyHeroesInRange(range) > 0  && Q.Ready && E.Ready)
+            var bestTarget = TargetSelector.Implementation.GetOrderedTargets(range).FirstOrDefault(t => t.IsValidTarget());
+            if (bestTarget.IsValidTarget(range) && Q.Ready && E.Ready)
             {
                 if (E.Ready)
                 {
