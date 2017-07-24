@@ -355,7 +355,7 @@
                 if (bestTarget != null &&
                     Player.GetSpellDamage(bestTarget, SpellSlot.Q) >= bestTarget.Health && bestTarget.IsValidTarget(Q.Range))
                 {
-                    Q.CastOnUnit(bestTarget);
+                    Q.Cast();
                 }
             }
             if (E.Ready && 
