@@ -80,7 +80,6 @@
             {
                 KSMenu.Add(new MenuBool("ksq", "Killsteal with Q"));
                 KSMenu.Add(new MenuBool("kse", "Killsteal with E"));
-                KSMenu.Add(new MenuBool("ksr", "Killsteal with R", false));
             }
             Menu.Add(KSMenu);
             var FleeMenu = new Menu("flee", "Flee");
@@ -275,7 +274,7 @@
                     foreach (var minion in GetEnemyLaneMinionsTargetsInRange(E.Range))
                     {
 
-                        if (minion.IsValidTarget(E.Range) && minion != null)
+                        if (minion.IsValidTarget(E.Range) && minion != null && !ImplementationClass.IOrbwalker.IsWindingUp)
                         {
                             E.CastOnUnit(minion);
                         }
@@ -321,7 +320,7 @@
                     {
                         Q.CastOnUnit(jungleTarget);
                     }
-                    if (useE && jungleTarget.IsValidTarget(E.Range))
+                    if (useE && jungleTarget.IsValidTarget(E.Range) && !ImplementationClass.IOrbwalker.IsWindingUp)
                     {
                         E.Cast(jungleTarget);
                     }
@@ -369,16 +368,6 @@
                     E.Cast(bestTarget);
                 }
             }
-            if (R.Ready &&
-                Menu["killsteal"]["ksr"].Enabled)
-            {
-                var bestTarget = GetBestKillableHero(R, DamageType.Magical, false);
-                if (bestTarget != null &&
-                    Player.GetSpellDamage(bestTarget, SpellSlot.R) >= bestTarget.Health && bestTarget.IsValidTarget(R.Range))
-                {
-                    R.Cast(bestTarget);
-                }
-            }
         }
 
         public static Obj_AI_Hero GetBestEnemyHeroTarget()
@@ -413,12 +402,12 @@
             {
                 return;
             }
-            if (W.Ready && useW && target.IsValidTarget(700) && !target.IsValidTarget(Player.GetFullAttackRange(target) + 100) && wengage && !onlywslow)
+            if (W.Ready && useW && target.IsValidTarget(700) && !target.IsValidTarget(Player.GetFullAttackRange(target) + 100) && wengage && !onlywslow && !ImplementationClass.IOrbwalker.IsWindingUp)
             {
                 W.Cast();
             }
 
-            if (W.Ready && onlywslowcombo && Player.HasBuffOfType(BuffType.Slow))
+            if (W.Ready && onlywslowcombo && Player.HasBuffOfType(BuffType.Slow) && !ImplementationClass.IOrbwalker.IsWindingUp)
             {
                 W.Cast();
             }
@@ -439,7 +428,7 @@
                 {
                         Q.Cast();                }
             }
-            if (E.Ready && useE && target.IsValidTarget(E.Range))
+            if (E.Ready && useE && target.IsValidTarget(E.Range) && !ImplementationClass.IOrbwalker.IsWindingUp)
             {
                 if (target != null)
                 {

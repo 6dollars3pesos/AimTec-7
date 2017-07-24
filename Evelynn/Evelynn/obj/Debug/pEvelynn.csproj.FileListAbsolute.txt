@@ -1,0 +1,10 @@
+C:\Users\Ryan\Desktop\AimTec\Evelynn\Evelynn\bin\Debug\pEvelynn.exe.config
+C:\Users\Ryan\Desktop\AimTec\Evelynn\Evelynn\bin\Debug\pEvelynn.exe
+C:\Users\Ryan\Desktop\AimTec\Evelynn\Evelynn\bin\Debug\pEvelynn.pdb
+C:\Users\Ryan\Desktop\AimTec\Evelynn\Evelynn\bin\Debug\Aimtec.dll
+C:\Users\Ryan\Desktop\AimTec\Evelynn\Evelynn\bin\Debug\Aimtec.SDK.dll
+C:\Users\Ryan\Desktop\AimTec\Evelynn\Evelynn\bin\Debug\NLog.dll
+C:\Users\Ryan\Desktop\AimTec\Evelynn\Evelynn\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Ryan\Desktop\AimTec\Evelynn\Evelynn\obj\Debug\pEvelynn.csprojResolveAssemblyReference.cache
+C:\Users\Ryan\Desktop\AimTec\Evelynn\Evelynn\obj\Debug\pEvelynn.exe
+C:\Users\Ryan\Desktop\AimTec\Evelynn\Evelynn\obj\Debug\pEvelynn.pdb
