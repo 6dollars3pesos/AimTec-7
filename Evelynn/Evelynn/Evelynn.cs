@@ -35,7 +35,7 @@
             E = new Spell(SpellSlot.E, 290);
             R = new Spell(SpellSlot.R, 650);
 
-            R.SetSkillshot(0.25f, 0.250f, 650f, false, SkillshotType.Circle);
+            R.SetSkillshot(0.25f, 650f, float.MaxValue, false, SkillshotType.Circle);
         }
 
         public Evelynn()
