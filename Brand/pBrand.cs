@@ -36,7 +36,7 @@
             R = new Spell(SpellSlot.R, 750);
 
             Q.SetSkillshot(0.25f, 0.60f, 1550f, true, SkillshotType.Line);
-            W.SetSkillshot(0.25f, 0.50f, float.MaxValue, false, SkillshotType.Circle);
+            W.SetSkillshot(0.25f, 250f, float.MaxValue, false, SkillshotType.Circle);
         }
 
         public Brand()
